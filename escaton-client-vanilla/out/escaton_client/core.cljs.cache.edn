@@ -1,0 +1,2 @@
+;; Analyzed by ClojureScript 1.7.228
+{:name escaton-client.core, :doc nil, :excludes #{}, :use-macros nil, :require-macros nil, :uses nil, :requires {repl clojure.browser.repl, clojure.browser.repl clojure.browser.repl}, :imports nil, :defs {conn {:name escaton-client.core/conn, :file "src/escaton_client/core.cljs", :line 4, :column 1, :end-line 4, :end-column 14, :meta {:file "/home/kasper/Development/workspace/escaton/proto/escaton-client/src/escaton_client/core.cljs", :line 4, :column 10, :end-line 4, :end-column 14}}}}

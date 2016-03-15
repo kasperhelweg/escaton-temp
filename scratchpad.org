@@ -1,0 +1,273 @@
+* Keywords
+  Deck
+  - Stack
+  - ResourceStack
+  - Card
+  Discard Stack
+  Hand
+  Player
+  Turn
+  Board
+  Game
+  Faction
+  Zone
+  Judgement Day
+  Token
+  Dice
+  Resource
+  Location
+  Ability
+  Casting Cost
+  Attack
+  Defence
+  Fierce / Meek
+  Action
+  Response
+
+* Architecture
+  Dumb Client / Smart Server
+  [c0, c1, ..., cn-1] // Deck of n cards
+  Card : Faction, Casting Cost, Type, ....
+  - A card is part data, part code; We should be able to add new cards
+    with new abilities easily...might require programming / scripting of new cards.
+
+    For example, each card could implement everything it can do
+    in relation to the games various phases.
+
+
+Gather all in-play cards( resources, creatures, ... ) and game-state variables( phase, judgement day?, etc... )
+Then, reduce the list of in-hand cards.
+
+Same for other phases...more or less :)
+
+
+The in-game cards form a language. each card implements the language
+which can be parsed
+
+* Cards
+  A card consist of same base data: type, faction, etc.
+  A card also contains a little piece of code written in escaton DSL
+  The code is executed by the escaton VM and composes.
+  For example, a piece of card code is essentially a function
+  that takes a card as it's argument and transforms that card somehow.
+  
+* Server
+  The server sends back adiff. of the game state.
+  The client applies the diff. ( maybe use react? )
+
+
+* Clojure
+  GAME BOARD( to be drawn by client )
+  {:creature-table { :#12d { :equipment [ #43g #44d #79k ], :state :drained } } }
+  {:resource-table { :#09j { :state :idle }, :#33x { :state :drained }  } }
+
+  The client should know which state it is in and
+  to which state it is going.( so it can do transitions ).
+  ----
+
+  (def creature-table { :#12d { :equipment [ :#43g ], :state :drained }
+                        :#10w { :equipment [ [ ] ],   :state :idle }})
+  
+  (def hand [ :#12d :#10w ])
+
+
+  
+
+   SERVERSIDE:
+     CARD-DB:
+     (def cards { :#12 { :type :creature :fraction :TM :cc :2TMR :goals { :gamephase { :draw :ok :action :ok :end :ok } } } }) 
+   
+     CARD( maybe on table )
+     (def card { :id :#12 :uuid :#11232  })
+
+  (cards (card :id))
+
+   SEND to CLIENT:
+  (def card { :id :#12 :uuid :#11232 :commands { } })
+  where commands are derived from satisfiable goals.
+
+
+
+
+  (keys creature-table)
+  (creature-table :#12d)
+  ((creature-table :#12d) :equipment)
+  
+
+
+
+ C0 C1 C2 ...
+ |
+ |
+C11
+
+Card C0 can target card C11 maybe with the condition that you have the required resources.
+
+
+Phases:
+  
+DRAW PHASE:
+
+MCS = { ( have stack ) <-- Command --> ( reduce stack, add to hand  ),
+        ( have resource stack ) <-- Command --> ( reduce resource stack, add to homeland  ) }
+
+OCS = { ( have drainable card) <-- Command --> ( drain card, add to resource pool )  }
+
+ACTION PHASE:
+
+CS = {   }
+
+END TURN:
+
+CS = {  }
+
+
+
+A CARD in a players hand "wants to be put onto the table".
+A CARD in play "wants to { attack | be drained | ... }"
+
+
+card
+
+
+STRIPS:
+
+A creature POIG instance...there could be more than one.
+<P, O, I, G>
+
+
+
+
+Initial state: TMR(5), Drained(false)
+Goal state:    Attack(Target)
+Actions:
+ // choose target
+ _Target(this, that)_
+ Preconditions:  Drained(true), Valid(that)
+ Postconditions: AddToBattle(this, that)
+
+maintain a seperate battle datastructure
+
+
+
+Need a resource counter that can calculate all theoretically available resources.(table, abilities, ...)
+Most preconditions include available resources and valid targets.
+
+
+A creature may have several goals:
+Goal state:    Attack(Target)
+Goal state:    Attack(Homeland)
+Goal state:    ( ) ie. do nothing so to be able to defend later.
+
+Each goal could be given a priority given a strategy( aggressive, defensive, ... )
+the strategy can ofcourse change during a game. 
+This could all be made slightly random or "fuzzy"( the chosen strategies should not always be obvious )
+
+
+
+* Stuff
+(def card-db { :#12 { } })
+
+(def stack [[:#12 :#uuid] [:#75 :#uuid] [:#43 :#uuid] [:#12 :#uuid]] )
+(def resource-stack [[:#19 :#uuid] [:#JD :#uuid] [:#19 :#uuid]] )
+(def discard-stack [[:#09 :#uuid] [:#1 :#uuid]] )
+
+(def hand [[:#12 :#uuid] [:#7 :#uuid] [:#40 :#uuid] [:#4 :#uuid]] )
+
+(def table { } )
+(def battlefield { } )
+
+
+Could also be just #uuid and then a map from #uuid to #card-id
+
+:title "Biomod Mercenary", 
+:type [:creature :warrior], 
+:cost [ [3 :NHR] ],
+:combat {:attack 2 :defence 1},
+:quirks {  },
+:abilities [
+  { POIG }, ...
+],
+:actions {
+  :hand 
+  :board
+},
+....
+
+
+(pre condition) <-- action --> (post condition)
+
+probably develop a language that allows you to refer to various facts of the game. (size of stack, available resources, etc...)
+
+
+  
+if left side and action then right side
+
+LANGUAGE KEYWORDS
+
+OBJECTS
+stack
+hand
+
+
+OPERATORS
+empty
+exists
+true
+false
+
+CONSTANTS
+JD
+
+FUNCTIONS
+shuffle
+draw
+drain
+activate
+
+
+BREAKTHROUGH: (todo: right side)
+  !empty(stack) ^ resources(NHR) >= 2 <-- action --> reveal(stack) -> shuffle(stack)
+
+OPENING THE THIRD EYE: (todo: right side)
+  resources(NHR) >= 1 <-- action --> resources(NHR) -= 1 ^ draw(stack) ^ draw(stack) // draw is really a macro for : push(hand, pop(stack))
+
+RIOTING MOB:
+  goal(play(this)))
+    true(JD)  ^ resources(NHR) >= 2 <-- action --> play(this)    
+    false(JD) ^ resources(NHR) >= 3 <-- action --> play(this) 
+  
+  goal(battle(this, _)) // depending on strategy etc.
+  exists(this) ^ !drained(this) ^ exists(target) <-- action --> drained(this) ^ battle(this, target) // battle is probably a macro push(battle, this)
+
+
+
+datastructures:
+
+stack
+resource-stack
+discard-stack
+card
+hand
+battle
+board (with sub structures)
+--creatures
+--resources
+--etc.
+tokens
+
+C0------->|-----|
+          | WS<-|---->ØMQ<---->SCA 
+C1------->|-----|
+
+
+
+C0------->|-----|
+          | WS<-|---->DC
+C1------->|-----|
+
+
+WS  : Webserver
+ØMQ : ZeroMQ
+SCA : Stateful Clojure App
+DC  : Docker Container

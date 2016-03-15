@@ -1,0 +1,7 @@
+Building ...
+... done. Elapsed 0.164339441 seconds
+Watching paths: /home/kasper/Development/workspace/escaton/proto/escaton-client/src
+Change detected, recompiling ...
+Compiling src/escaton_client/core.cljs
+Copying file:/home/kasper/Development/workspace/escaton/proto/escaton-client/src/escaton_client/core.cljs to out/escaton_client/core.cljs
+... done. Elapsed 0.209089536 seconds
